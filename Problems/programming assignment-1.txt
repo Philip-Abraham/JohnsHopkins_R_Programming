@@ -1,0 +1,102 @@
+source("complete.R")
+nobs_df<-complete("specdata", 1:332)
+
+threshold<-400
+nobs_df_thr<-nobs_df[nobs_df$nobs>threshold,]
+
+threshold_id_vector<-nobs_df_thr$id
+thrVector_length<-length(threshold_id_vector)
+
+files_list <- list.files("specdata", full.names = TRUE) #creates a list of files
+dat <- data.frame() #creates an empty data frame
+for (i in 1:332) {
+        # loops through the files, rbinding them together
+        dat <- rbind(dat, read.csv(files_list[i]))
+}
+
+dat<-dat[dat$ID %in% threshold_id_vector, ]
+dat_NAsubset<-subset(dat,dat$sulfate!="NA" & dat$nitrate!="NA")
+
+# Set up an empty vector of  NAs to store correlations from each specified monitor
+
+if (nrow(nobs_df_thr)!=0) {
+        
+
+correl<-rep(NA,thrVector_length)
+for (i in 1:thrVector_length) {
+        v<-threshold_id_vector[i]
+        dat_NAsubset_cor<-subset(dat_NAsubset,dat_NAsubset$ID==v)
+        corr_eachID<-cor(dat_NAsubset_cor$sulfate,dat_NAsubset_cor$nitrate)
+        correl[i] <- corr_eachID
+}
+}else{
+        correl<- numeric(0)    
+}
+
+
+
+
+
+
+
+Question to Mentor - Programming Assig#1 - Part 3
+I assume in Programming Assig#1 - Part 3, the output will be run using the
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Write a function that reads a directory full of files and reports the number of completely observed 
+## cases in each data file. The function should return a data frame where the first column is the name of
+### the file and the second column is the number of complete cases.
+
+
+complete <- function(directory,id) {
+        files_list <- list.files(directory, full.names = TRUE) #creates a list of files
+        dat <- data.frame() #creates an empty data frame
+        for (i in 1:332) {
+                # loops through the files, rbinding them together
+                dat <- rbind(dat, read.csv(files_list[i]))
+        }
+        
+        
+        
+        dat_IDsubset<-dat[dat$ID %in% id,]
+        
+        
+        
+        dat_NAsubset<-subset(dat_IDsubset,dat_IDsubset$sulfate!="NA" & dat_IDsubset$nitrate!="NA")
+        dat_IDsubsetID<-subset(dat_NAsubset, select=c(ID))
+        nobs<-table(dat_IDsubsetID)
+        nobs_df<-as.data.frame.table(nobs)
+        names(nobs_df)<-c("id","nobs")
+        
+        nobs_df[,'id'] <- as.numeric(as.character(nobs_df[,'id']))
+        as.numeric(rownames(nobs_df))
+        
+        x<-id
+        y<-length(x)
+        if (x[1]>x[y]){ ##If the "id" vector is in descending order,then these steps displays nobs_df in descending order
+                nobs_df <- nobs_df[order(-nobs_df$id),]
+                rownames(nobs_df)<-c(1:y)
+        }
+        
+        
+        nobs_df
+}
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# Write a function named 'pollutantmean' that calculates the mean of a pollutant (sulfate or nitrate) across 
+# a specified list of monitors. 
+## The function 'pollutantmean' takes three arguments: 'directory', 'pollutant', and 'id'. 
+### Given a vector monitor ID numbers, 'pollutantmean' reads that monitors' particulate matter data from the 
+### directory specified in the 'directory' argument and returns the mean of the pollutant across all of the 
+### monitors, ignoring any missing values coded as NA. 
+
+pollutantmean <- function(directory, pollutant, id) {
+        files_list <- list.files(directory, full.names = TRUE) #creates a list of files
+        dat <- data.frame() #creates an empty data frame
+        for (i in 1:332) {
+                # loops through the files, rbinding them together
+                dat <- rbind(dat, read.csv(files_list[i]))
+        }
+        dat_IDsubset<-dat[dat$ID %in% id,]
+        dat_POLsubset<-dat_IDsubset[, pollutant]
+        mean(dat_POLsubset, na.rm = TRUE)
+}
